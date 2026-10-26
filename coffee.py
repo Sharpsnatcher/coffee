@@ -30,7 +30,7 @@ while True:
 
 # Спрашиваем категорию, пока не введут существующую
 categories = df["product_category"].unique()
-print("Категории:", ", ".join(categories))
+print("Категории:", list(categories))
 while True:
     category = input("Введите категорию: ")
     if category in categories:
@@ -42,19 +42,19 @@ print("\nКоличество строк после фильтрации:", len(
 print(filtered.head())
 
 # 3. Группировка по категории
-grouped = df.groupby("product_category").agg(
-    transactions=("transaction_id", "count"),
-    avg_price=("unit_price", "mean"),
-    total_qty=("transaction_qty", "sum"),
-    max_price=("unit_price", "max"),
-)
+grouped = pd.DataFrame()
+grouped["transactions"] = df.groupby("product_category")["transaction_id"].count()
+grouped["avg_price"] = df.groupby("product_category")["unit_price"].mean()
+grouped["total_qty"] = df.groupby("product_category")["transaction_qty"].sum()
+grouped["max_price"] = df.groupby("product_category")["unit_price"].max()
 grouped = grouped.sort_values("avg_price", ascending=False)
 print("\nГруппировка по категориям:")
 print(grouped)
 
 # 4. Новый столбец
 mean_price = df["unit_price"].mean()
-df["price_level"] = np.where(df["unit_price"] > mean_price, "выше среднего", "ниже или равно")
+df["price_level"] = "ниже или равно"
+df.loc[df["unit_price"] > mean_price, "price_level"] = "выше среднего"
 print("\nСредняя цена:", round(mean_price, 2))
 print(df[["unit_price", "price_level"]].head())
 
